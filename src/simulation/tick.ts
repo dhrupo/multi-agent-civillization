@@ -12,6 +12,10 @@ import {
   EARTHQUAKE_HEALTH_HIT,
   ENERGY_DECAY,
   HEALTH_REGEN,
+  HOMELESS_CATASTROPHE_MULT,
+  HOMELESS_EXPOSURE_BASE,
+  HOMELESS_EXPOSURE_ESCALATION,
+  HOMELESS_WINTER_MULT,
   HUNGER_PER_TICK,
   MAX_STORED_EVENTS,
   PLAN_GRACE_DAYS,
@@ -29,7 +33,7 @@ import { destroyBuilding, getBuildingAt } from "./buildings"
 import { computeScore, computeWinner } from "./scoring"
 import { distance } from "./world"
 import { random } from "./rng"
-import { seasonHungerMult, seasonRegenMult } from "./seasons"
+import { getSeason, seasonHungerMult, seasonRegenMult } from "./seasons"
 
 let tickEventCounter = 0
 
@@ -203,6 +207,25 @@ export function runTick(state: SimState): SimState {
       agent.health = clamp(agent.health + 1, 0, 100)
       agent.energy = clamp(agent.energy + 1, 0, 100)
     }
+
+    // homelessness: with no base, the elements take their toll until you rebuild
+    const hasBase = buildings.some((b) => b.type === "base" && b.ownerId === agent.id)
+    if (hasBase) {
+      agent.homelessSinceDay = null
+    } else {
+      if (agent.homelessSinceDay === null) {
+        agent.homelessSinceDay = newDay
+        newEvents.push(
+          tickEvent(newDay, `🏚️ ${agent.name} is homeless — exposed to the elements`, 3, [agent.id])
+        )
+      }
+      // exposure escalates each day without shelter — a spiral that outruns healing
+      const daysHomeless = newDay - agent.homelessSinceDay
+      let exposure = HOMELESS_EXPOSURE_BASE + daysHomeless * HOMELESS_EXPOSURE_ESCALATION
+      if (getSeason(newDay) === "winter") exposure *= HOMELESS_WINTER_MULT
+      if (catastrophe) exposure *= HOMELESS_CATASTROPHE_MULT
+      agent.health = clamp(agent.health - exposure, 0, 100)
+    }
   }
 
   // 5. Regen tile resources (season-scaled)
@@ -222,16 +245,13 @@ export function runTick(state: SimState): SimState {
       agent.isAlive = false
       agent.deathDay = newDay
       agent.currentGoal = "Dead"
-      newEvents.push(
-        tickEvent(
-          newDay,
-          catastrophe
+      const cause =
+        agent.homelessSinceDay !== null
+          ? `🪦 ${agent.name} died exposed, with no home, on Day ${newDay}`
+          : catastrophe
             ? `${agent.name} perished in the ${catastrophe.type} on Day ${newDay}`
-            : `${agent.name} died from starvation on Day ${newDay}`,
-          3,
-          [agent.id]
-        )
-      )
+            : `${agent.name} died from starvation on Day ${newDay}`
+      newEvents.push(tickEvent(newDay, cause, 3, [agent.id]))
     }
   }
 

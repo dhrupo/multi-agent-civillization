@@ -331,6 +331,62 @@ function aggressScenario(withGrievance: boolean): { attacked: boolean; raided: b
   console.log(`negotiated trade guard: unaffordable deal rejected ${broke === null ? "PASS" : "FAIL"}`)
 }
 
+// --- Homelessness: a baseless agent dies from exposure if it can't rebuild ---
+{
+  setSeed(3)
+  const tiles = generateWorld()
+  const a = createAgent("a1", "Exposed", "#fff", { aggression: 20, greed: 40, cooperation: 50, curiosity: 40 }, { x: 5, y: 5 })
+  // build state WITHOUT a starting base, and strip resources so rebuild is impossible
+  const s0: SimState = {
+    phase: "running", day: 0, endDay: 9999, tick: 0, speed: 1, isPaused: false,
+    agents: [a], tiles, buildings: [], events: [], selectedAgentId: null, winner: null,
+    catastrophe: null, lastCatastropheEnd: 0, catastropheCount: 0, scoreHistory: {}, societyHistory: [],
+  }
+  a.inventory = { food: 50, wood: 0, stone: 0 } // well-fed, so only exposure can kill
+  // surround with water so there's no wood/stone to rebuild with
+  for (let y = 0; y < tiles.length; y++) for (let x = 0; x < tiles[0].length; x++) {
+    if (tiles[y][x].terrain !== "water") { tiles[y][x].terrain = "grass"; tiles[y][x].resource = 0 }
+  }
+  let s = s0
+  let homelessFlagged = false
+  let died = false
+  for (let i = 0; i < 40; i++) {
+    s = runTick(s)
+    homelessFlagged ||= s.events.some((e) => e.text.includes("is homeless"))
+    if (!s.agents[0].isAlive) { died = true; break }
+  }
+  const diedExposed = s.events.some((e) => e.text.includes("died exposed"))
+  console.log(
+    `homelessness death: flagged=${homelessFlagged} died=${died} exposedMsg=${diedExposed} ${
+      homelessFlagged && died && diedExposed ? "PASS (no home → death)" : "FAIL"
+    }`
+  )
+}
+
+// --- Homelessness comeback: a baseless agent with resources rebuilds and lives ---
+{
+  setSeed(3)
+  const tiles = generateWorld()
+  const a = createAgent("a1", "Rebuilder", "#fff", { aggression: 20, greed: 40, cooperation: 50, curiosity: 40 }, { x: 5, y: 5 })
+  const s0: SimState = {
+    phase: "running", day: 0, endDay: 9999, tick: 0, speed: 1, isPaused: false,
+    agents: [a], tiles, buildings: [], events: [], selectedAgentId: null, winner: null,
+    catastrophe: null, lastCatastropheEnd: 0, catastropheCount: 0, scoreHistory: {}, societyHistory: [],
+  }
+  a.inventory = { food: 50, wood: 10, stone: 10 } // enough to rebuild a base immediately
+  let s = s0
+  let rebuilt = false
+  for (let i = 0; i < 40 && s.agents[0].isAlive; i++) {
+    s = runTick(s)
+    rebuilt ||= s.buildings.some((b) => b.type === "base" && b.ownerId === "a1")
+    if (rebuilt) break
+  }
+  const alive = s.agents[0].isAlive
+  console.log(
+    `homelessness comeback: rebuilt=${rebuilt} alive=${alive} ${rebuilt && alive ? "PASS (rebuilt → survived)" : "FAIL"}`
+  )
+}
+
 // --- Catastrophe over a long horizon ---
 {
   const tiles = generateWorld()

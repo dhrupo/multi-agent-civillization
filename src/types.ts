@@ -50,6 +50,7 @@ export type Agent = {
   peaceHistory: Record<string, number> // agentId → reparations already offered to them
   warWeariness: Record<string, number> // agentId → fatigue from fighting them (wars burn out)
   basePersonality: Personality // who they were at the start — drift is measured from here
+  homelessSinceDay: number | null // set the day the base is lost; null while sheltered
 }
 
 export type Season = "spring" | "summer" | "autumn" | "winter"

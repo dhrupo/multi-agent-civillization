@@ -68,6 +68,7 @@ None of these behaviors are scripted — they emerge from the rules below plus t
 | 🗣️ **Gossip** | Conversations transfer a fraction of the teller's strongest grievance to the listener, and vouch for close friends. | *"🗣️ Luna warned Rex about Vex"* — and a week later Rex attacks Vex. |
 | 🤝 **Negotiated trade** | Conversation JSON may include a deal (`aGives`/`bGives`); validated and executed exactly as spoken. Trade is positive-sum (both sides gain a bonus). | *"3 stone for 4 food?"* in dialogue becomes a real inventory exchange. |
 | 🏚️ **Granaries** | A storage building locks the owner's last 6 food away from thieves. Being robbed 3× (once for loners) makes anyone want one. | A theft wave triggers an island-wide fortification boom. |
+| 🪦 **Homelessness** | Lose your base (to a raid or catastrophe) and you're exposed: escalating daily damage that outruns healing. Rebuild a base in time or die. Every archetype drops everything to rebuild when homeless. | *"🏚️ Kai is homeless"* → a desperate scramble for wood → *"Kai rebuilt a base — survived!"* or *"🪦 died exposed, with no home."* |
 | 🧬 **Trait drift** | Being attacked: −cooperation, +aggression. Receiving gifts/reparations: +cooperation. Bounded, slow. The agent panel shows how far each trait has moved from who they started as (*"⚖ Hardened — cooperation ▼9"*). | A trusting villager ground down by a bully measurably hardens — and remembers it next life. |
 | ❄️ **Seasons** | 120-day year. Winter nearly halves food regrowth and sharpens hunger; minds are warned in prompts. | *"It is AUTUMN: winter is coming — stockpile now"* appears in agents' plans. |
 | 🌋 **Catastrophes** | Storms, blights, earthquakes strike anytime, damage stockpiles and buildings; huddling together protects; violence is dampened. | Rivals sheltering side by side. Or an earthquake leveling four campfires at once. |
@@ -129,7 +130,7 @@ npm run serve          # standalone Node server: static dist/ + AI proxy
 | `npm run dev` | Dev server with AI proxy at `localhost:5199` |
 | `npm run build` | Production build to `dist/` |
 | `npm run serve` | Standalone Node server (static + AI proxy), for deployment |
-| `npm run test:headless` | **14-gate regression suite**: stockpile caps, trespass grievance caps, the justification gate (no cause → no violence), justified violence, reconciliation, positive-sum trade, storage protection, war burnout, trait drift, diplomat viability, gossip transfer, negotiated trade (+ guard), catastrophe frequency |
+| `npm run test:headless` | **16-gate regression suite**: stockpile caps, trespass grievance caps, the justification gate (no cause → no violence), justified violence, reconciliation, positive-sum trade, storage protection, war burnout, trait drift, diplomat viability, gossip transfer, negotiated trade (+ guard), homelessness death + comeback, catastrophe frequency |
 | `npm run experiment -- --runs 30 --days 1000 --seed 1` | Seeded, reproducible instinct-mode batch; CSV per run to stdout, win/score summary to stderr |
 | `npm run experiment -- --runs 5 --days 500 --ai --memory` | AI-minded batch in Node (direct provider calls); `--memory` carries memories across the batch's runs — for testing how history changes outcomes statistically |
 
@@ -161,7 +162,7 @@ src/
   ui/                # SetupScreen, SimScreen, MapCanvas (beams, webs), Leaderboard,
                      # SocietyPanel, AgentPanel, EventLog, EndScreen
 scripts/
-  headless.ts        # the 14-gate regression suite
+  headless.ts        # the 16-gate regression suite
   experiment.ts      # seeded batch runner (instinct or --ai)
 server.mjs           # production server: static dist/ + AI proxy
 ```

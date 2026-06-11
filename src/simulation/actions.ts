@@ -253,7 +253,9 @@ export function computeUtilities(agent: Agent, ctx: WorldContext): Record<Action
   // them rich reinvests in buildings (Diplomat) — so all archetypes can build.
   const independence = (100 - cooperation) * 0.7
   const commerce = Math.min(60, agent.stats.trades * 1.5) // each completed trade earns build ambition
-  const industry = Math.max(greed, independence, commerce)
+  // homelessness overrides personality: any archetype scrambles to rebuild shelter
+  const homeless = !ctx.buildings.some((b) => b.type === "base" && b.ownerId === agent.id)
+  const industry = homeless ? 100 : Math.max(greed, independence, commerce)
 
   const utilities: Record<ActionType, number> = {
     eat: hunger > 20 && inventory.food > 0 ? hunger * 3 : 0,

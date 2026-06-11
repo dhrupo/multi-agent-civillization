@@ -57,6 +57,15 @@ export const BUILDING_COSTS = {
   storage: { wood: 5, stone: 5 },
 } as const
 
+// --- Homelessness: lose your base and the elements start killing you ---
+// Exposure escalates the longer you go without shelter (a death spiral that
+// outpaces healing), and bites harder in winter and during catastrophes.
+// Rebuilding a base ends it — a desperate comeback window before death.
+export const HOMELESS_EXPOSURE_BASE = 6 // damage on the first homeless day
+export const HOMELESS_EXPOSURE_ESCALATION = 1.5 // added per additional homeless day
+export const HOMELESS_WINTER_MULT = 1.6
+export const HOMELESS_CATASTROPHE_MULT = 1.6
+
 export const BUILDING_BONUS = {
   base: { healthRegen: 1, energyRegen: 2 },
   campfire: { energyRegen: 5 },

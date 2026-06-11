@@ -83,6 +83,7 @@ export function createAgent(
     peaceHistory: {},
     warWeariness: {},
     basePersonality: { ...personality },
+    homelessSinceDay: null,
   }
 }
 
